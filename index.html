@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>StudySync</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+  <style>
+    body {
+      font-family: 'Roboto', sans-serif;
+      background-color: #f8f9fa;
+      color: #333;
+    }
+
+    nav {
+      margin-bottom: 20px;
+      background-color: #007b5e;
+    }
+
+    .nav-link {
+      color: white !important;
+    }
+
+    .page {
+      display: none;
+    }
+
+    .active {
+      display: block;
+    }
+
+    #loading {
+      display: none;
+    }
+
+    .modal-content {
+      max-width: 500px;
+      margin: 0 auto;
+    }
+
+    .navbar-brand {
+      font-size: 1.75rem;
+      font-weight: bold;
+    }
+
+    .btn-custom {
+      background-color: #28a745;
+      color: white;
+    }
+
+    .btn-custom:hover {
+      background-color: #218838;
+    }
+
+    .container {
+      margin-top: 30px;
+    }
+
+    .page-header {
+      font-size: 2rem;
+      color: #007b5e;
+      margin-bottom: 20px;
+    }
+
+    .page-content {
+      background-color: #ffffff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .form-control {
+      border-radius: 8px;
+    }
+
+    .list-group-item {
+      font-size: 1.1rem;
+    }
+
+    .list-group-item button {
+      border-radius: 50%;
+    }
+
+    #quiz-container .question {
+      font-size: 1.5rem;
+      font-weight: 500;
+      margin-bottom: 20px;
+    }
+
+    #quiz-container .options {
+      list-style: none;
+      padding: 0;
+    }
+
+    #quiz-container .options li {
+      margin: 10px 0;
+    }
+
+    .feedback {
+      font-size: 1.2rem;
+      font-weight: bold;
+      margin-top: 20px;
+    }
+
+    .correct-answer {
+      font-size: 1.2rem;
+      margin-top: 10px;
+      color: green;
+    }
+
+    #quiz-message {
+      font-size: 1.2rem;
+      margin-top: 20px;
+    }
+
+    .card-header {
+      background-color: #f8f9fa;
+      font-weight: bold;
+    }
+
+    .modal-header {
+      background-color: #007b5e;
+      color: white;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg navbar-dark">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="#">StudySync</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav">
+          <li class="nav-item"><a class="nav-link" href="#" data-page="home">Home</a></li>
+          <li class="nav-item"><a class="nav-link" href="#" data-page="flashcards">Flashcards</a></li>
+          <li class="nav-item"><a class="nav-link" href="#" data-page="quiz">Quiz</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container">
+    <!-- Home Page -->
+    <div id="home" class="page active">
+      <h1 class="page-header">Welcome to StudySync</h1>
+      <div class="page-content">
+        <p>Your personal study buddy!</p>
+        <p><strong>Flashcard Count:</strong> <span id="flashcard-count">0</span></p>
+      </div>
+    </div>
+
+    <!-- Flashcards Page -->
+    <div id="flashcards" class="page">
+      <h2 class="page-header">Manage Flashcards</h2>
+      <div class="page-content">
+        <form id="flashcard-form" class="mb-3">
+          <div class="mb-3">
+            <input type="text" id="question" class="form-control" placeholder="Enter Question" required>
+          </div>
+          <div class="mb-3">
+            <input type="text" id="answer" class="form-control" placeholder="Enter Correct Answer" required>
+          </div>
+          <div class="mb-3">
+            <input type="text" id="option1" class="form-control" placeholder="Enter Option 1" required>
+          </div>
+          <div class="mb-3">
+            <input type="text" id="option2" class="form-control" placeholder="Enter Option 2" required>
+          </div>
+          <div class="mb-3">
+            <input type="text" id="option3" class="form-control" placeholder="Enter Option 3" required>
+          </div>
+          <button type="submit" class="btn btn-custom">Add Flashcard</button>
+        </form>
+
+        <div class="mb-3">
+          <label for="upload-csv" class="form-label">Upload CSV:</label>
+          <input type="file" id="upload-csv" class="form-control">
+        </div>
+        <button id="upload-status-btn" class="btn btn-primary mt-3" disabled>CSV Upload Status</button>
+        <ul id="flashcard-list" class="list-group mt-3"></ul>
+      </div>
+    </div>
+
+    <!-- Quiz Page -->
+    <div id="quiz" class="page">
+      <h2 class="page-header">Quiz Yourself</h2>
+      <div class="page-content">
+        <div class="mb-3">
+          <label for="quiz-mode" class="form-label">Quiz Mode:</label>
+          <select id="quiz-mode" class="form-select">
+            <option value="enumeration">Enumeration</option>
+            <option value="multiple-choice">Multiple Choice</option>
+          </select>
+        </div>
+        <button id="start-quiz" class="btn btn-custom">Start Quiz</button>
+        <button id="refresh-quiz" class="btn btn-warning mt-3">Refresh Quiz</button>
+        <button id="check-quiz" class="btn btn-primary mt-3" style="display: none;">Check Answer</button>
+
+        <div id="loading" class="text-center mt-3" style="display: none;">
+          <span>Loading...</span>
+        </div>
+        <div id="quiz-container" class="mt-3"></div>
+        <div id="quiz-message" class="mt-3 text-info" style="display: none;"></div>
+        <div id="quiz-score" class="mt-3 text-success"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal for displaying all flashcard questions -->
+  <div class="modal fade" id="flashcard-modal" tabindex="-1" aria-labelledby="flashcard-modal-label" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="flashcard-modal-label">All Flashcard Questions</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <ul id="all-questions-list" class="list-group"></ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- JavaScript -->
+  <script>
+    // Navigation logic
+    const navLinks = document.querySelectorAll('.nav-link');
+    const pages = document.querySelectorAll('.page');
+
+    navLinks.forEach(link => {
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+        const targetPage = link.dataset.page;
+
+        pages.forEach(page => {
+          page.classList.remove('active');
+          if (page.id === targetPage) {
+            page.classList.add('active');
+          }
+        });
+      });
+    });
+
+    // Flashcard functionality
+    const flashcards = JSON.parse(localStorage.getItem('flashcards')) || [];
+
+    document.getElementById('flashcard-form').addEventListener('submit', function (e) {
+      e.preventDefault();
+      const question = document.getElementById('question').value;
+      const answer = document.getElementById('answer').value;
+      const option1 = document.getElementById('option1').value;
+      const option2 = document.getElementById('option2').value;
+      const option3 = document.getElementById('option3').value;
+
+      flashcards.push({ question, answer, option1, option2, option3 });
+      localStorage.setItem('flashcards', JSON.stringify(flashcards));
+      displayFlashcards();
+
+      // Clear the input fields after adding the flashcard
+      document.getElementById('question').value = '';
+      document.getElementById('answer').value = '';
+      document.getElementById('option1').value = '';
+      document.getElementById('option2').value = '';
+      document.getElementById('option3').value = '';
+    });
+
+    function displayFlashcards() {
+      const flashcardList = document.getElementById('flashcard-list');
+      flashcardList.innerHTML = '';
+
+      flashcards.forEach((flashcard, index) => {
+        const li = document.createElement('li');
+        li.className = 'list-group-item d-flex justify-content-between align-items-center';
+        li.innerHTML = `${flashcard.question} 
+                        <button class="btn btn-danger btn-sm" onclick="deleteFlashcard(${index})">Delete</button>`;
+        flashcardList.appendChild(li);
+      });
+
+      document.getElementById('flashcard-count').textContent = flashcards.length;
+    }
+
+    function deleteFlashcard(index) {
+      flashcards.splice(index, 1);
+      localStorage.setItem('flashcards', JSON.stringify(flashcards));
+      displayFlashcards();
+    }
+
+    // CSV Upload Functionality
+    document.getElementById('upload-csv').addEventListener('change', function (e) {
+      const file = e.target.files[0];
+
+      if (file && file.type === 'text/csv') {
+        const reader = new FileReader();
+
+        reader.onload = function (e) {
+          const text = e.target.result;
+          const lines = text.split('\n').map(line => line.trim());
+          
+          flashcards.length = 0; // Clear previous flashcards
+          lines.forEach(line => {
+            const columns = line.split(',');
+
+            if (columns.length >= 5) {
+              const question = columns[0];
+              const answer = columns[1];
+              const option1 = columns[2];
+              const option2 = columns[3];
+              const option3 = columns[4];
+
+              flashcards.push({ question, answer, option1, option2, option3 });
+            }
+          });
+
+          localStorage.setItem('flashcards', JSON.stringify(flashcards));
+          displayFlashcards();
+          document.getElementById('upload-status-btn').textContent = 'CSV Uploaded Successfully';
+          document.getElementById('upload-status-btn').disabled = true;
+        };
+
+        reader.readAsText(file);
+      } else {
+        alert('Please upload a valid CSV file.');
+      }
+    });
+
+    // Clear upload status if another file is uploaded
+    document.getElementById('upload-csv').addEventListener('click', function () {
+      document.getElementById('upload-status-btn').textContent = 'CSV Upload Status';
+      document.getElementById('upload-status-btn').disabled = false;
+    });
+
+    // Quiz functionality
+    let quizIndex = 0;
+    let score = 0;
+    let selectedAnswer = '';
+    let shuffledFlashcards = [];
+
+    document.getElementById('start-quiz').addEventListener('click', function () {
+      document.getElementById('loading').style.display = 'block';
+      setTimeout(() => {
+        document.getElementById('loading').style.display = 'none';
+        shuffledFlashcards = [...flashcards];
+        shuffleArray(shuffledFlashcards); // Shuffle flashcards
+        score = 0; // Reset score
+        quizIndex = 0; // Reset quiz index
+        startNextQuestion(document.getElementById('quiz-mode').value);
+      }, 1000);
+    });
+
+    document.getElementById('refresh-quiz').addEventListener('click', function () {
+      // Clear previous quiz content and start from scratch
+      document.getElementById('quiz-container').innerHTML = '';
+      document.getElementById('quiz-message').style.display = 'none';
+      document.getElementById('quiz-score').innerHTML = '';
+    });
+
+    function shuffleArray(arr) {
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+    }
+
+    function startNextQuestion(mode) {
+      const flashcard = shuffledFlashcards[quizIndex];
+
+      if (!flashcard) {
+        document.getElementById('quiz-score').innerHTML = `Quiz complete! Your score: ${score} out of ${shuffledFlashcards.length}`;
+        document.getElementById('check-quiz').style.display = 'none';
+        return;
+      }
+
+      const quizContainer = document.getElementById('quiz-container');
+      quizContainer.innerHTML = '';
+
+      const questionElement = document.createElement('div');
+      questionElement.classList.add('question');
+      questionElement.innerText = flashcard.question;
+      quizContainer.appendChild(questionElement);
+
+      if (mode === 'enumeration') {
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.classList.add('form-control');
+        input.placeholder = 'Enter your answer';
+        input.addEventListener('input', function () {
+          selectedAnswer = input.value.trim();
+        });
+        quizContainer.appendChild(input);
+      } else {
+        const optionsList = document.createElement('ul');
+        optionsList.classList.add('options');
+
+        const allOptions = [flashcard.option1, flashcard.option2, flashcard.option3, flashcard.answer];
+        shuffleArray(allOptions); // Shuffle the options
+        allOptions.forEach(option => {
+          const li = document.createElement('li');
+          li.innerHTML = `<input type="radio" name="options" value="${option}"> ${option}`;
+          li.querySelector('input').addEventListener('change', function () {
+            selectedAnswer = option;
+          });
+          optionsList.appendChild(li);
+        });
+
+        quizContainer.appendChild(optionsList);
+      }
+
+      document.getElementById('check-quiz').style.display = 'block';
+    }
+
+    document.getElementById('check-quiz').addEventListener('click', function () {
+      const flashcard = shuffledFlashcards[quizIndex];
+      const isCorrect = selectedAnswer === flashcard.answer;
+
+      if (isCorrect) {
+        score++;
+      }
+
+      const feedbackMessage = isCorrect ? "Correct!" : `Incorrect.`;
+
+      document.getElementById('quiz-message').style.display = 'block';
+      document.getElementById('quiz-message').innerText = feedbackMessage;
+
+      quizIndex++;
+      startNextQuestion(document.getElementById('quiz-mode').value);
+    });
+
+    displayFlashcards();
+  </script>
+</body>
+</html>
